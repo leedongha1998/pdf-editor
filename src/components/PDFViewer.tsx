@@ -1,15 +1,33 @@
 import { useEffect, useRef, useState } from 'react';
 import * as pdfjsLib from 'pdfjs-dist';
+import DrawingCanvas, { Stroke } from './DrawingCanvas';
 
 interface PDFViewerProps {
   data: ArrayBuffer;
   pageNumber: number;
   zoom: number;
+  isDrawingMode: boolean;
+  drawColor: string;
+  strokeWidth: number;
+  isEraser: boolean;
+  strokes: Stroke[];
+  onStrokesChange: (strokes: Stroke[]) => void;
 }
 
-export default function PDFViewer({ data, pageNumber, zoom }: PDFViewerProps) {
+export default function PDFViewer({
+  data,
+  pageNumber,
+  zoom,
+  isDrawingMode,
+  drawColor,
+  strokeWidth,
+  isEraser,
+  strokes,
+  onStrokesChange,
+}: PDFViewerProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [error, setError] = useState<string | null>(null);
+  const [canvasSize, setCanvasSize] = useState({ width: 0, height: 0 });
   const renderTaskRef = useRef<pdfjsLib.RenderTask | null>(null);
 
   useEffect(() => {
@@ -41,6 +59,8 @@ export default function PDFViewer({ data, pageNumber, zoom }: PDFViewerProps) {
         canvas.style.width = `${viewport.width / dpr}px`;
         canvas.style.height = `${viewport.height / dpr}px`;
 
+        setCanvasSize({ width: viewport.width, height: viewport.height });
+
         const ctx = canvas.getContext('2d')!;
         ctx.clearRect(0, 0, canvas.width, canvas.height);
 
@@ -68,7 +88,21 @@ export default function PDFViewer({ data, pageNumber, zoom }: PDFViewerProps) {
 
   return (
     <div className="pdf-canvas-wrapper flex justify-center">
-      <canvas ref={canvasRef} />
+      <div style={{ position: 'relative', display: 'inline-block' }}>
+        <canvas ref={canvasRef} />
+        {canvasSize.width > 0 && (
+          <DrawingCanvas
+            isActive={isDrawingMode}
+            color={drawColor}
+            strokeWidth={strokeWidth}
+            isEraser={isEraser}
+            strokes={strokes}
+            onStrokesChange={onStrokesChange}
+            canvasWidth={canvasSize.width}
+            canvasHeight={canvasSize.height}
+          />
+        )}
+      </div>
     </div>
   );
 }
