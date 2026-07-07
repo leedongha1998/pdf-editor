@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import * as pdfjsLib from 'pdfjs-dist';
 import DrawingCanvas, { Stroke } from './DrawingCanvas';
+import HighlightCanvas, { HighlightStroke } from './HighlightCanvas';
 import TextLayer from './TextLayer';
 import StampLayer from './StampLayer';
 import { TextAnnotation, StampAnnotation } from '../types/pdf';
@@ -26,6 +27,11 @@ interface PDFViewerProps {
   stampName: string;
   stampColor: string;
   stampSize: number;
+  isHighlightMode: boolean;
+  highlightColor: string;
+  highlightWidth: number;
+  highlightStrokes: HighlightStroke[];
+  onHighlightStrokesChange: (strokes: HighlightStroke[]) => void;
 }
 
 export default function PDFViewer({
@@ -49,6 +55,11 @@ export default function PDFViewer({
   stampName,
   stampColor,
   stampSize,
+  isHighlightMode,
+  highlightColor,
+  highlightWidth,
+  highlightStrokes,
+  onHighlightStrokesChange,
 }: PDFViewerProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [error, setError] = useState<string | null>(null);
@@ -117,6 +128,15 @@ export default function PDFViewer({
         <canvas ref={canvasRef} />
         {canvasSize.width > 0 && (
           <>
+            <HighlightCanvas
+              isActive={isHighlightMode}
+              color={highlightColor}
+              strokeWidth={highlightWidth}
+              strokes={highlightStrokes}
+              onStrokesChange={onHighlightStrokesChange}
+              canvasWidth={canvasSize.width}
+              canvasHeight={canvasSize.height}
+            />
             <DrawingCanvas
               isActive={isDrawingMode}
               color={drawColor}

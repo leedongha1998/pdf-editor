@@ -1,4 +1,4 @@
-import { RotateCcw, RotateCw, ZoomIn, ZoomOut, Download, ChevronLeft, ChevronRight, Pencil, Eraser, Undo2, Trash2, Type, Stamp } from 'lucide-react';
+import { RotateCcw, RotateCw, ZoomIn, ZoomOut, Download, ChevronLeft, ChevronRight, Pencil, Eraser, Undo2, Trash2, Type, Stamp, Highlighter } from 'lucide-react';
 
 interface ToolbarProps {
   currentPage: number;
@@ -35,6 +35,14 @@ interface ToolbarProps {
   onStampSizeChange: (size: number) => void;
   onUndoStamp: () => void;
   onClearStamps: () => void;
+  isHighlightMode: boolean;
+  onToggleHighlightMode: () => void;
+  highlightColor: string;
+  onHighlightColorChange: (color: string) => void;
+  highlightWidth: number;
+  onHighlightWidthChange: (width: number) => void;
+  onUndoHighlight: () => void;
+  onClearHighlights: () => void;
 }
 
 const COLORS = [
@@ -63,6 +71,20 @@ const STAMP_SIZES = [
   { value: 60, label: 'S' },
   { value: 80, label: 'M' },
   { value: 100, label: 'L' },
+];
+
+const HIGHLIGHT_COLORS = [
+  { value: '#FFFF00', label: '노랑' },
+  { value: '#90EE90', label: '연두' },
+  { value: '#FFB6C1', label: '분홍' },
+  { value: '#87CEEB', label: '하늘' },
+  { value: '#FFA500', label: '주황' },
+];
+
+const HIGHLIGHT_SIZES = [
+  { value: 12, label: 'S' },
+  { value: 20, label: 'M' },
+  { value: 32, label: 'L' },
 ];
 
 
@@ -101,6 +123,14 @@ export default function Toolbar({
   onStampSizeChange,
   onUndoStamp,
   onClearStamps,
+  isHighlightMode,
+  onToggleHighlightMode,
+  highlightColor,
+  onHighlightColorChange,
+  highlightWidth,
+  onHighlightWidthChange,
+  onUndoHighlight,
+  onClearHighlights,
 }: ToolbarProps) {
   const zoomLevels = [0.5, 0.75, 1.0, 1.25, 1.5, 2.0];
   const isAnnotationMode = isDrawingMode || isTextMode;
@@ -211,6 +241,15 @@ export default function Toolbar({
           title="도장 모드"
         >
           <Stamp size={18} />
+        </button>
+        <button
+          onClick={onToggleHighlightMode}
+          className={`p-1.5 rounded transition-colors ${
+            isHighlightMode ? 'bg-yellow-100 text-yellow-600' : 'hover:bg-gray-100 text-gray-600'
+          }`}
+          title="형광펜 모드"
+        >
+          <Highlighter size={18} />
         </button>
       </div>
 
@@ -408,6 +447,68 @@ export default function Toolbar({
             onClick={onClearStamps}
             className="p-1.5 rounded hover:bg-gray-100 text-gray-600"
             title="이 페이지 도장 모두 지우기"
+          >
+            <Trash2 size={18} />
+          </button>
+        </>
+      )}
+
+      {/* 형광펜 전용 컨트롤 */}
+      {isHighlightMode && (
+        <>
+          <div className="w-px h-6 bg-gray-200" />
+
+          {/* 형광펜 색상 */}
+          <div className="flex items-center gap-1">
+            {HIGHLIGHT_COLORS.map(({ value, label }) => (
+              <button
+                key={value}
+                title={label}
+                onClick={() => onHighlightColorChange(value)}
+                className={`w-5 h-5 rounded border-2 transition-transform ${
+                  highlightColor === value
+                    ? 'border-gray-700 scale-125'
+                    : 'border-transparent hover:border-gray-400'
+                }`}
+                style={{ backgroundColor: value }}
+              />
+            ))}
+          </div>
+
+          <div className="w-px h-6 bg-gray-200" />
+
+          {/* 형광펜 굵기 */}
+          <div className="flex items-center gap-1">
+            {HIGHLIGHT_SIZES.map(({ value, label }) => (
+              <button
+                key={value}
+                onClick={() => onHighlightWidthChange(value)}
+                className={`px-2 py-0.5 rounded text-xs font-medium transition-colors ${
+                  highlightWidth === value
+                    ? 'bg-yellow-400 text-white'
+                    : 'hover:bg-gray-100 text-gray-600'
+                }`}
+                title={`굵기 ${label}`}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+
+          <div className="w-px h-6 bg-gray-200" />
+
+          <button
+            onClick={onUndoHighlight}
+            className="p-1.5 rounded hover:bg-gray-100 text-gray-600"
+            title="형광펜 실행 취소"
+          >
+            <Undo2 size={18} />
+          </button>
+
+          <button
+            onClick={onClearHighlights}
+            className="p-1.5 rounded hover:bg-gray-100 text-gray-600"
+            title="이 페이지 형광펜 모두 지우기"
           >
             <Trash2 size={18} />
           </button>

@@ -11,6 +11,7 @@ import ConvertPanel from './components/ConvertPanel';
 import { rotatePage, deletePage, downloadBuffer, formatFileSize } from './utils/pdfUtils';
 import { ActiveTab, PDFFile, TextAnnotation, StampAnnotation } from './types/pdf';
 import { Stroke } from './components/DrawingCanvas';
+import { HighlightStroke } from './components/HighlightCanvas';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState<ActiveTab>('editor');
@@ -30,6 +31,10 @@ export default function App() {
   const [stampColor, setStampColor] = useState('#dc2626');
   const [stampSize, setStampSize] = useState(80);
   const [stampsByPage, setStampsByPage] = useState<Record<number, StampAnnotation[]>>({});
+  const [isHighlightMode, setIsHighlightMode] = useState(false);
+  const [highlightColor, setHighlightColor] = useState('#FFFF00');
+  const [highlightWidth, setHighlightWidth] = useState(20);
+  const [highlightsByPage, setHighlightsByPage] = useState<Record<number, HighlightStroke[]>>({});
 
   const currentStrokes = drawingsByPage[currentPage] ?? [];
   const currentTextAnnotations = textsByPage[currentPage] ?? [];
@@ -51,9 +56,11 @@ export default function App() {
     setDrawingsByPage({});
     setTextsByPage({});
     setStampsByPage({});
+    setHighlightsByPage({});
     setIsDrawingMode(false);
     setIsTextMode(false);
     setIsStampMode(false);
+    setIsHighlightMode(false);
   };
 
   const updatePdf = async (newData: ArrayBuffer) => {
@@ -109,23 +116,47 @@ export default function App() {
 
   const handleToggleDrawing = () => {
     setIsDrawingMode((v) => {
-      if (!v) { setIsTextMode(false); setIsStampMode(false); }
+      if (!v) { setIsTextMode(false); setIsStampMode(false); setIsHighlightMode(false); }
       return !v;
     });
   };
 
   const handleToggleTextMode = () => {
     setIsTextMode((v) => {
-      if (!v) { setIsDrawingMode(false); setIsStampMode(false); }
+      if (!v) { setIsDrawingMode(false); setIsStampMode(false); setIsHighlightMode(false); }
       return !v;
     });
   };
 
   const handleToggleStampMode = () => {
     setIsStampMode((v) => {
-      if (!v) { setIsDrawingMode(false); setIsTextMode(false); }
+      if (!v) { setIsDrawingMode(false); setIsTextMode(false); setIsHighlightMode(false); }
       return !v;
     });
+  };
+
+  const handleToggleHighlightMode = () => {
+    setIsHighlightMode((v) => {
+      if (!v) { setIsDrawingMode(false); setIsTextMode(false); setIsStampMode(false); }
+      return !v;
+    });
+  };
+
+  const currentHighlightStrokes = highlightsByPage[currentPage] ?? [];
+
+  const handleHighlightStrokesChange = (strokes: HighlightStroke[]) => {
+    setHighlightsByPage((prev) => ({ ...prev, [currentPage]: strokes }));
+  };
+
+  const handleUndoHighlight = () => {
+    setHighlightsByPage((prev) => {
+      const strokes = prev[currentPage] ?? [];
+      return { ...prev, [currentPage]: strokes.slice(0, -1) };
+    });
+  };
+
+  const handleClearHighlights = () => {
+    setHighlightsByPage((prev) => ({ ...prev, [currentPage]: [] }));
   };
 
   const currentStampAnnotations = stampsByPage[currentPage] ?? [];
@@ -226,6 +257,14 @@ export default function App() {
                   onStampSizeChange={setStampSize}
                   onUndoStamp={handleUndoStamp}
                   onClearStamps={handleClearStamps}
+                  isHighlightMode={isHighlightMode}
+                  onToggleHighlightMode={handleToggleHighlightMode}
+                  highlightColor={highlightColor}
+                  onHighlightColorChange={setHighlightColor}
+                  highlightWidth={highlightWidth}
+                  onHighlightWidthChange={setHighlightWidth}
+                  onUndoHighlight={handleUndoHighlight}
+                  onClearHighlights={handleClearHighlights}
                 />
 
                 <div className="flex flex-1 overflow-hidden">
@@ -259,6 +298,11 @@ export default function App() {
                       stampName={stampName}
                       stampColor={stampColor}
                       stampSize={stampSize}
+                      isHighlightMode={isHighlightMode}
+                      highlightColor={highlightColor}
+                      highlightWidth={highlightWidth}
+                      highlightStrokes={currentHighlightStrokes}
+                      onHighlightStrokesChange={handleHighlightStrokesChange}
                     />
                   </div>
                 </div>
