@@ -1,4 +1,4 @@
-import { RotateCcw, RotateCw, ZoomIn, ZoomOut, Download, ChevronLeft, ChevronRight, Pencil, Eraser, Undo2, Trash2, Type } from 'lucide-react';
+import { RotateCcw, RotateCw, ZoomIn, ZoomOut, Download, ChevronLeft, ChevronRight, Pencil, Eraser, Undo2, Trash2, Type, Stamp } from 'lucide-react';
 
 interface ToolbarProps {
   currentPage: number;
@@ -25,6 +25,16 @@ interface ToolbarProps {
   onTextFontSizeChange: (size: number) => void;
   onUndoText: () => void;
   onClearTextAnnotations: () => void;
+  isStampMode: boolean;
+  onToggleStampMode: () => void;
+  stampName: string;
+  onStampNameChange: (name: string) => void;
+  stampColor: string;
+  onStampColorChange: (color: string) => void;
+  stampSize: number;
+  onStampSizeChange: (size: number) => void;
+  onUndoStamp: () => void;
+  onClearStamps: () => void;
 }
 
 const COLORS = [
@@ -36,18 +46,25 @@ const COLORS = [
   { value: '#f97316', label: '주황' },
 ];
 
+const STAMP_COLORS = [
+  { value: '#dc2626', label: '빨강' },
+  { value: '#1d4ed8', label: '파랑' },
+  { value: '#111827', label: '검정' },
+  { value: '#7c3aed', label: '보라' },
+];
+
 const STROKE_SIZES = [
   { value: 2, label: 'S' },
   { value: 5, label: 'M' },
   { value: 10, label: 'L' },
 ];
 
-const FONT_SIZES = [
-  { value: 12, label: 'S' },
-  { value: 18, label: 'M' },
-  { value: 28, label: 'L' },
-  { value: 40, label: 'XL' },
+const STAMP_SIZES = [
+  { value: 60, label: 'S' },
+  { value: 80, label: 'M' },
+  { value: 100, label: 'L' },
 ];
+
 
 export default function Toolbar({
   currentPage,
@@ -74,6 +91,16 @@ export default function Toolbar({
   onTextFontSizeChange,
   onUndoText,
   onClearTextAnnotations,
+  isStampMode,
+  onToggleStampMode,
+  stampName,
+  onStampNameChange,
+  stampColor,
+  onStampColorChange,
+  stampSize,
+  onStampSizeChange,
+  onUndoStamp,
+  onClearStamps,
 }: ToolbarProps) {
   const zoomLevels = [0.5, 0.75, 1.0, 1.25, 1.5, 2.0];
   const isAnnotationMode = isDrawingMode || isTextMode;
@@ -156,7 +183,7 @@ export default function Toolbar({
 
       <div className="w-px h-6 bg-gray-200" />
 
-      {/* 그리기 / 텍스트 토글 */}
+      {/* 그리기 / 텍스트 / 도장 토글 */}
       <div className="flex items-center gap-1">
         <button
           onClick={onToggleDrawing}
@@ -175,6 +202,15 @@ export default function Toolbar({
           title="텍스트 입력 모드"
         >
           <Type size={18} />
+        </button>
+        <button
+          onClick={onToggleStampMode}
+          className={`p-1.5 rounded transition-colors ${
+            isStampMode ? 'bg-red-100 text-red-600' : 'hover:bg-gray-100 text-gray-600'
+          }`}
+          title="도장 모드"
+        >
+          <Stamp size={18} />
         </button>
       </div>
 
@@ -264,20 +300,21 @@ export default function Toolbar({
 
           {/* 글자 크기 */}
           <div className="flex items-center gap-1">
-            {FONT_SIZES.map(({ value, label }) => (
-              <button
-                key={value}
-                onClick={() => onTextFontSizeChange(value)}
-                className={`px-2 py-0.5 rounded text-xs font-medium transition-colors ${
-                  textFontSize === value
-                    ? 'bg-blue-600 text-white'
-                    : 'hover:bg-gray-100 text-gray-600'
-                }`}
-                title={`글자 크기 ${value}px`}
-              >
-                {label}
-              </button>
-            ))}
+            <span className="text-xs text-gray-500">크기</span>
+            <input
+              type="number"
+              min={6}
+              max={200}
+              value={textFontSize}
+              onChange={(e) => {
+                const val = parseInt(e.target.value, 10);
+                if (!isNaN(val) && val >= 6 && val <= 200) {
+                  onTextFontSizeChange(val);
+                }
+              }}
+              className="w-16 px-2 py-0.5 rounded border border-gray-300 text-xs text-gray-700 focus:outline-none focus:border-blue-500"
+            />
+            <span className="text-xs text-gray-500">px</span>
           </div>
 
           <div className="w-px h-6 bg-gray-200" />
@@ -294,6 +331,83 @@ export default function Toolbar({
             onClick={onClearTextAnnotations}
             className="p-1.5 rounded hover:bg-gray-100 text-gray-600"
             title="이 페이지 텍스트 모두 지우기"
+          >
+            <Trash2 size={18} />
+          </button>
+        </>
+      )}
+
+      {/* 도장 전용 컨트롤 */}
+      {isStampMode && (
+        <>
+          <div className="w-px h-6 bg-gray-200" />
+
+          {/* 이름 입력 */}
+          <div className="flex items-center gap-1.5">
+            <span className="text-xs text-gray-500">이름</span>
+            <input
+              type="text"
+              value={stampName}
+              onChange={(e) => onStampNameChange(e.target.value)}
+              placeholder="이름 입력"
+              maxLength={6}
+              className="w-24 px-2 py-0.5 rounded border border-gray-300 text-xs text-gray-700 focus:outline-none focus:border-red-400"
+            />
+          </div>
+
+          <div className="w-px h-6 bg-gray-200" />
+
+          {/* 도장 색상 */}
+          <div className="flex items-center gap-1">
+            {STAMP_COLORS.map(({ value, label }) => (
+              <button
+                key={value}
+                title={label}
+                onClick={() => onStampColorChange(value)}
+                className={`w-5 h-5 rounded-full border-2 transition-transform ${
+                  stampColor === value
+                    ? 'border-gray-700 scale-125'
+                    : 'border-transparent hover:border-gray-400'
+                }`}
+                style={{ backgroundColor: value }}
+              />
+            ))}
+          </div>
+
+          <div className="w-px h-6 bg-gray-200" />
+
+          {/* 도장 크기 */}
+          <div className="flex items-center gap-1">
+            {STAMP_SIZES.map(({ value, label }) => (
+              <button
+                key={value}
+                onClick={() => onStampSizeChange(value)}
+                className={`px-2 py-0.5 rounded text-xs font-medium transition-colors ${
+                  stampSize === value
+                    ? 'bg-red-500 text-white'
+                    : 'hover:bg-gray-100 text-gray-600'
+                }`}
+                title={`크기 ${label}`}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+
+          <div className="w-px h-6 bg-gray-200" />
+
+          <button
+            onClick={onUndoStamp}
+            className="p-1.5 rounded hover:bg-gray-100 text-gray-600"
+            title="도장 실행 취소"
+          >
+            <Undo2 size={18} />
+          </button>
+
+          <button
+            onClick={onClearStamps}
+            className="p-1.5 rounded hover:bg-gray-100 text-gray-600"
+            title="이 페이지 도장 모두 지우기"
           >
             <Trash2 size={18} />
           </button>

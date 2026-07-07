@@ -9,7 +9,7 @@ import MergePanel from './components/MergePanel';
 import SplitPanel from './components/SplitPanel';
 import ConvertPanel from './components/ConvertPanel';
 import { rotatePage, deletePage, downloadBuffer, formatFileSize } from './utils/pdfUtils';
-import { ActiveTab, PDFFile, TextAnnotation } from './types/pdf';
+import { ActiveTab, PDFFile, TextAnnotation, StampAnnotation } from './types/pdf';
 import { Stroke } from './components/DrawingCanvas';
 
 export default function App() {
@@ -25,6 +25,11 @@ export default function App() {
   const [isTextMode, setIsTextMode] = useState(false);
   const [textFontSize, setTextFontSize] = useState(18);
   const [textsByPage, setTextsByPage] = useState<Record<number, TextAnnotation[]>>({});
+  const [isStampMode, setIsStampMode] = useState(false);
+  const [stampName, setStampName] = useState('');
+  const [stampColor, setStampColor] = useState('#dc2626');
+  const [stampSize, setStampSize] = useState(80);
+  const [stampsByPage, setStampsByPage] = useState<Record<number, StampAnnotation[]>>({});
 
   const currentStrokes = drawingsByPage[currentPage] ?? [];
   const currentTextAnnotations = textsByPage[currentPage] ?? [];
@@ -45,8 +50,10 @@ export default function App() {
     setZoom(1.0);
     setDrawingsByPage({});
     setTextsByPage({});
+    setStampsByPage({});
     setIsDrawingMode(false);
     setIsTextMode(false);
+    setIsStampMode(false);
   };
 
   const updatePdf = async (newData: ArrayBuffer) => {
@@ -102,16 +109,40 @@ export default function App() {
 
   const handleToggleDrawing = () => {
     setIsDrawingMode((v) => {
-      if (!v) setIsTextMode(false);
+      if (!v) { setIsTextMode(false); setIsStampMode(false); }
       return !v;
     });
   };
 
   const handleToggleTextMode = () => {
     setIsTextMode((v) => {
-      if (!v) setIsDrawingMode(false);
+      if (!v) { setIsDrawingMode(false); setIsStampMode(false); }
       return !v;
     });
+  };
+
+  const handleToggleStampMode = () => {
+    setIsStampMode((v) => {
+      if (!v) { setIsDrawingMode(false); setIsTextMode(false); }
+      return !v;
+    });
+  };
+
+  const currentStampAnnotations = stampsByPage[currentPage] ?? [];
+
+  const handleStampAnnotationsChange = (annotations: StampAnnotation[]) => {
+    setStampsByPage((prev) => ({ ...prev, [currentPage]: annotations }));
+  };
+
+  const handleUndoStamp = () => {
+    setStampsByPage((prev) => {
+      const stamps = prev[currentPage] ?? [];
+      return { ...prev, [currentPage]: stamps.slice(0, -1) };
+    });
+  };
+
+  const handleClearStamps = () => {
+    setStampsByPage((prev) => ({ ...prev, [currentPage]: [] }));
   };
 
   const handleTextAnnotationsChange = (annotations: TextAnnotation[]) => {
@@ -185,6 +216,16 @@ export default function App() {
                   onTextFontSizeChange={setTextFontSize}
                   onUndoText={handleUndoText}
                   onClearTextAnnotations={handleClearTextAnnotations}
+                  isStampMode={isStampMode}
+                  onToggleStampMode={handleToggleStampMode}
+                  stampName={stampName}
+                  onStampNameChange={setStampName}
+                  stampColor={stampColor}
+                  onStampColorChange={setStampColor}
+                  stampSize={stampSize}
+                  onStampSizeChange={setStampSize}
+                  onUndoStamp={handleUndoStamp}
+                  onClearStamps={handleClearStamps}
                 />
 
                 <div className="flex flex-1 overflow-hidden">
@@ -212,6 +253,12 @@ export default function App() {
                       textFontSize={textFontSize}
                       textAnnotations={currentTextAnnotations}
                       onTextAnnotationsChange={handleTextAnnotationsChange}
+                      isStampMode={isStampMode}
+                      stampAnnotations={currentStampAnnotations}
+                      onStampAnnotationsChange={handleStampAnnotationsChange}
+                      stampName={stampName}
+                      stampColor={stampColor}
+                      stampSize={stampSize}
                     />
                   </div>
                 </div>

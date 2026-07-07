@@ -16,3 +16,12 @@ export interface TextAnnotation {
   color: string;
   fontSize: number;
 }
+
+export interface StampAnnotation {
+  id: string;
+  x: number;
+  y: number;
+  name: string;
+  color: string;
+  size: number;
+}

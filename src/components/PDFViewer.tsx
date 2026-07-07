@@ -2,7 +2,8 @@ import { useEffect, useRef, useState } from 'react';
 import * as pdfjsLib from 'pdfjs-dist';
 import DrawingCanvas, { Stroke } from './DrawingCanvas';
 import TextLayer from './TextLayer';
-import { TextAnnotation } from '../types/pdf';
+import StampLayer from './StampLayer';
+import { TextAnnotation, StampAnnotation } from '../types/pdf';
 
 interface PDFViewerProps {
   data: ArrayBuffer;
@@ -19,6 +20,12 @@ interface PDFViewerProps {
   textFontSize: number;
   textAnnotations: TextAnnotation[];
   onTextAnnotationsChange: (annotations: TextAnnotation[]) => void;
+  isStampMode: boolean;
+  stampAnnotations: StampAnnotation[];
+  onStampAnnotationsChange: (annotations: StampAnnotation[]) => void;
+  stampName: string;
+  stampColor: string;
+  stampSize: number;
 }
 
 export default function PDFViewer({
@@ -36,6 +43,12 @@ export default function PDFViewer({
   textFontSize,
   textAnnotations,
   onTextAnnotationsChange,
+  isStampMode,
+  stampAnnotations,
+  onStampAnnotationsChange,
+  stampName,
+  stampColor,
+  stampSize,
 }: PDFViewerProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [error, setError] = useState<string | null>(null);
@@ -120,6 +133,14 @@ export default function PDFViewer({
               onAnnotationsChange={onTextAnnotationsChange}
               color={textColor}
               fontSize={textFontSize}
+            />
+            <StampLayer
+              isActive={isStampMode}
+              annotations={stampAnnotations}
+              onAnnotationsChange={onStampAnnotationsChange}
+              stampName={stampName}
+              stampColor={stampColor}
+              stampSize={stampSize}
             />
           </>
         )}
