@@ -1,4 +1,4 @@
-import { RotateCcw, RotateCw, ZoomIn, ZoomOut, Download, ChevronLeft, ChevronRight, Pencil, Eraser, Undo2, Trash2 } from 'lucide-react';
+import { RotateCcw, RotateCw, ZoomIn, ZoomOut, Download, ChevronLeft, ChevronRight, Pencil, Eraser, Undo2, Trash2, Type } from 'lucide-react';
 
 interface ToolbarProps {
   currentPage: number;
@@ -19,6 +19,12 @@ interface ToolbarProps {
   onToggleEraser: () => void;
   onUndo: () => void;
   onClearDrawings: () => void;
+  isTextMode: boolean;
+  onToggleTextMode: () => void;
+  textFontSize: number;
+  onTextFontSizeChange: (size: number) => void;
+  onUndoText: () => void;
+  onClearTextAnnotations: () => void;
 }
 
 const COLORS = [
@@ -30,10 +36,17 @@ const COLORS = [
   { value: '#f97316', label: '주황' },
 ];
 
-const SIZES = [
+const STROKE_SIZES = [
   { value: 2, label: 'S' },
   { value: 5, label: 'M' },
   { value: 10, label: 'L' },
+];
+
+const FONT_SIZES = [
+  { value: 12, label: 'S' },
+  { value: 18, label: 'M' },
+  { value: 28, label: 'L' },
+  { value: 40, label: 'XL' },
 ];
 
 export default function Toolbar({
@@ -55,8 +68,15 @@ export default function Toolbar({
   onToggleEraser,
   onUndo,
   onClearDrawings,
+  isTextMode,
+  onToggleTextMode,
+  textFontSize,
+  onTextFontSizeChange,
+  onUndoText,
+  onClearTextAnnotations,
 }: ToolbarProps) {
   const zoomLevels = [0.5, 0.75, 1.0, 1.25, 1.5, 2.0];
+  const isAnnotationMode = isDrawingMode || isTextMode;
 
   const adjustZoom = (delta: number) => {
     const currentIdx = zoomLevels.findIndex((z) => z >= zoom);
@@ -136,22 +156,32 @@ export default function Toolbar({
 
       <div className="w-px h-6 bg-gray-200" />
 
-      {/* 그리기 토글 */}
-      <button
-        onClick={onToggleDrawing}
-        className={`p-1.5 rounded transition-colors ${
-          isDrawingMode ? 'bg-blue-100 text-blue-600' : 'hover:bg-gray-100 text-gray-600'
-        }`}
-        title="그리기 모드"
-      >
-        <Pencil size={18} />
-      </button>
+      {/* 그리기 / 텍스트 토글 */}
+      <div className="flex items-center gap-1">
+        <button
+          onClick={onToggleDrawing}
+          className={`p-1.5 rounded transition-colors ${
+            isDrawingMode ? 'bg-blue-100 text-blue-600' : 'hover:bg-gray-100 text-gray-600'
+          }`}
+          title="그리기 모드"
+        >
+          <Pencil size={18} />
+        </button>
+        <button
+          onClick={onToggleTextMode}
+          className={`p-1.5 rounded transition-colors ${
+            isTextMode ? 'bg-blue-100 text-blue-600' : 'hover:bg-gray-100 text-gray-600'
+          }`}
+          title="텍스트 입력 모드"
+        >
+          <Type size={18} />
+        </button>
+      </div>
 
-      {isDrawingMode && (
+      {/* 공통: 색상 선택 (그리기 또는 텍스트 모드일 때) */}
+      {isAnnotationMode && (
         <>
           <div className="w-px h-6 bg-gray-200" />
-
-          {/* 색상 선택 */}
           <div className="flex items-center gap-1">
             {COLORS.map(({ value, label }) => (
               <button
@@ -159,10 +189,10 @@ export default function Toolbar({
                 title={label}
                 onClick={() => {
                   onColorChange(value);
-                  if (isEraser) onToggleEraser();
+                  if (isDrawingMode && isEraser) onToggleEraser();
                 }}
                 className={`w-5 h-5 rounded-full border-2 transition-transform ${
-                  drawColor === value && !isEraser
+                  drawColor === value && (!isDrawingMode || !isEraser)
                     ? 'border-gray-700 scale-125'
                     : 'border-transparent hover:border-gray-400'
                 }`}
@@ -170,12 +200,17 @@ export default function Toolbar({
               />
             ))}
           </div>
+        </>
+      )}
 
+      {/* 그리기 전용 컨트롤 */}
+      {isDrawingMode && (
+        <>
           <div className="w-px h-6 bg-gray-200" />
 
           {/* 굵기 */}
           <div className="flex items-center gap-1">
-            {SIZES.map(({ value, label }) => (
+            {STROKE_SIZES.map(({ value, label }) => (
               <button
                 key={value}
                 onClick={() => onStrokeWidthChange(value)}
@@ -204,7 +239,6 @@ export default function Toolbar({
             <Eraser size={18} />
           </button>
 
-          {/* 실행 취소 */}
           <button
             onClick={onUndo}
             className="p-1.5 rounded hover:bg-gray-100 text-gray-600"
@@ -213,11 +247,53 @@ export default function Toolbar({
             <Undo2 size={18} />
           </button>
 
-          {/* 그림 전체 지우기 */}
           <button
             onClick={onClearDrawings}
             className="p-1.5 rounded hover:bg-gray-100 text-gray-600"
             title="이 페이지 그림 모두 지우기"
+          >
+            <Trash2 size={18} />
+          </button>
+        </>
+      )}
+
+      {/* 텍스트 전용 컨트롤 */}
+      {isTextMode && (
+        <>
+          <div className="w-px h-6 bg-gray-200" />
+
+          {/* 글자 크기 */}
+          <div className="flex items-center gap-1">
+            {FONT_SIZES.map(({ value, label }) => (
+              <button
+                key={value}
+                onClick={() => onTextFontSizeChange(value)}
+                className={`px-2 py-0.5 rounded text-xs font-medium transition-colors ${
+                  textFontSize === value
+                    ? 'bg-blue-600 text-white'
+                    : 'hover:bg-gray-100 text-gray-600'
+                }`}
+                title={`글자 크기 ${value}px`}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+
+          <div className="w-px h-6 bg-gray-200" />
+
+          <button
+            onClick={onUndoText}
+            className="p-1.5 rounded hover:bg-gray-100 text-gray-600"
+            title="텍스트 실행 취소"
+          >
+            <Undo2 size={18} />
+          </button>
+
+          <button
+            onClick={onClearTextAnnotations}
+            className="p-1.5 rounded hover:bg-gray-100 text-gray-600"
+            title="이 페이지 텍스트 모두 지우기"
           >
             <Trash2 size={18} />
           </button>
