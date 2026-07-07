@@ -9,7 +9,7 @@ import MergePanel from './components/MergePanel';
 import SplitPanel from './components/SplitPanel';
 import ConvertPanel from './components/ConvertPanel';
 import { rotatePage, deletePage, downloadBuffer, formatFileSize } from './utils/pdfUtils';
-import { ActiveTab, PDFFile } from './types/pdf';
+import { ActiveTab, PDFFile, TextAnnotation } from './types/pdf';
 import { Stroke } from './components/DrawingCanvas';
 
 export default function App() {
@@ -22,8 +22,12 @@ export default function App() {
   const [strokeWidth, setStrokeWidth] = useState(4);
   const [isEraser, setIsEraser] = useState(false);
   const [drawingsByPage, setDrawingsByPage] = useState<Record<number, Stroke[]>>({});
+  const [isTextMode, setIsTextMode] = useState(false);
+  const [textFontSize, setTextFontSize] = useState(18);
+  const [textsByPage, setTextsByPage] = useState<Record<number, TextAnnotation[]>>({});
 
   const currentStrokes = drawingsByPage[currentPage] ?? [];
+  const currentTextAnnotations = textsByPage[currentPage] ?? [];
 
   const handleFileUpload = async (files: File[]) => {
     const file = files[0];
@@ -40,7 +44,9 @@ export default function App() {
     setCurrentPage(1);
     setZoom(1.0);
     setDrawingsByPage({});
+    setTextsByPage({});
     setIsDrawingMode(false);
+    setIsTextMode(false);
   };
 
   const updatePdf = async (newData: ArrayBuffer) => {
@@ -94,6 +100,35 @@ export default function App() {
     });
   };
 
+  const handleToggleDrawing = () => {
+    setIsDrawingMode((v) => {
+      if (!v) setIsTextMode(false);
+      return !v;
+    });
+  };
+
+  const handleToggleTextMode = () => {
+    setIsTextMode((v) => {
+      if (!v) setIsDrawingMode(false);
+      return !v;
+    });
+  };
+
+  const handleTextAnnotationsChange = (annotations: TextAnnotation[]) => {
+    setTextsByPage((prev) => ({ ...prev, [currentPage]: annotations }));
+  };
+
+  const handleUndoText = () => {
+    setTextsByPage((prev) => {
+      const anns = prev[currentPage] ?? [];
+      return { ...prev, [currentPage]: anns.slice(0, -1) };
+    });
+  };
+
+  const handleClearTextAnnotations = () => {
+    setTextsByPage((prev) => ({ ...prev, [currentPage]: [] }));
+  };
+
   return (
     <div className="min-h-screen flex flex-col bg-gray-100">
       <Header activeTab={activeTab} onTabChange={handleTabChange} />
@@ -135,7 +170,7 @@ export default function App() {
                   onRotateRight={handleRotateRight}
                   onDownload={handleDownload}
                   isDrawingMode={isDrawingMode}
-                  onToggleDrawing={() => setIsDrawingMode((v) => !v)}
+                  onToggleDrawing={handleToggleDrawing}
                   drawColor={drawColor}
                   onColorChange={setDrawColor}
                   strokeWidth={strokeWidth}
@@ -144,6 +179,12 @@ export default function App() {
                   onToggleEraser={() => setIsEraser((v) => !v)}
                   onUndo={handleUndo}
                   onClearDrawings={handleClearDrawings}
+                  isTextMode={isTextMode}
+                  onToggleTextMode={handleToggleTextMode}
+                  textFontSize={textFontSize}
+                  onTextFontSizeChange={setTextFontSize}
+                  onUndoText={handleUndoText}
+                  onClearTextAnnotations={handleClearTextAnnotations}
                 />
 
                 <div className="flex flex-1 overflow-hidden">
@@ -166,6 +207,11 @@ export default function App() {
                       isEraser={isEraser}
                       strokes={currentStrokes}
                       onStrokesChange={handleStrokesChange}
+                      isTextMode={isTextMode}
+                      textColor={drawColor}
+                      textFontSize={textFontSize}
+                      textAnnotations={currentTextAnnotations}
+                      onTextAnnotationsChange={handleTextAnnotationsChange}
                     />
                   </div>
                 </div>

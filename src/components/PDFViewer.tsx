@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import * as pdfjsLib from 'pdfjs-dist';
 import DrawingCanvas, { Stroke } from './DrawingCanvas';
+import TextLayer from './TextLayer';
+import { TextAnnotation } from '../types/pdf';
 
 interface PDFViewerProps {
   data: ArrayBuffer;
@@ -12,6 +14,11 @@ interface PDFViewerProps {
   isEraser: boolean;
   strokes: Stroke[];
   onStrokesChange: (strokes: Stroke[]) => void;
+  isTextMode: boolean;
+  textColor: string;
+  textFontSize: number;
+  textAnnotations: TextAnnotation[];
+  onTextAnnotationsChange: (annotations: TextAnnotation[]) => void;
 }
 
 export default function PDFViewer({
@@ -24,6 +31,11 @@ export default function PDFViewer({
   isEraser,
   strokes,
   onStrokesChange,
+  isTextMode,
+  textColor,
+  textFontSize,
+  textAnnotations,
+  onTextAnnotationsChange,
 }: PDFViewerProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [error, setError] = useState<string | null>(null);
@@ -91,16 +103,25 @@ export default function PDFViewer({
       <div style={{ position: 'relative', display: 'inline-block' }}>
         <canvas ref={canvasRef} />
         {canvasSize.width > 0 && (
-          <DrawingCanvas
-            isActive={isDrawingMode}
-            color={drawColor}
-            strokeWidth={strokeWidth}
-            isEraser={isEraser}
-            strokes={strokes}
-            onStrokesChange={onStrokesChange}
-            canvasWidth={canvasSize.width}
-            canvasHeight={canvasSize.height}
-          />
+          <>
+            <DrawingCanvas
+              isActive={isDrawingMode}
+              color={drawColor}
+              strokeWidth={strokeWidth}
+              isEraser={isEraser}
+              strokes={strokes}
+              onStrokesChange={onStrokesChange}
+              canvasWidth={canvasSize.width}
+              canvasHeight={canvasSize.height}
+            />
+            <TextLayer
+              isActive={isTextMode}
+              annotations={textAnnotations}
+              onAnnotationsChange={onTextAnnotationsChange}
+              color={textColor}
+              fontSize={textFontSize}
+            />
+          </>
         )}
       </div>
     </div>

@@ -7,3 +7,12 @@ export interface PDFFile {
 }
 
 export type ActiveTab = 'editor' | 'merge' | 'split' | 'convert';
+
+export interface TextAnnotation {
+  id: string;
+  x: number;
+  y: number;
+  text: string;
+  color: string;
+  fontSize: number;
+}
