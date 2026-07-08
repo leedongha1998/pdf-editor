@@ -23,7 +23,6 @@ interface ToolbarProps {
   onToggleTextMode: () => void;
   textFontSize: number;
   onTextFontSizeChange: (size: number) => void;
-  onUndoText: () => void;
   onClearTextAnnotations: () => void;
   isStampMode: boolean;
   onToggleStampMode: () => void;
@@ -33,7 +32,6 @@ interface ToolbarProps {
   onStampColorChange: (color: string) => void;
   stampSize: number;
   onStampSizeChange: (size: number) => void;
-  onUndoStamp: () => void;
   onClearStamps: () => void;
   isHighlightMode: boolean;
   onToggleHighlightMode: () => void;
@@ -41,7 +39,6 @@ interface ToolbarProps {
   onHighlightColorChange: (color: string) => void;
   highlightWidth: number;
   onHighlightWidthChange: (width: number) => void;
-  onUndoHighlight: () => void;
   onClearHighlights: () => void;
 }
 
@@ -100,7 +97,6 @@ export default function Toolbar({
   onToggleTextMode,
   textFontSize,
   onTextFontSizeChange,
-  onUndoText,
   onClearTextAnnotations,
   isStampMode,
   onToggleStampMode,
@@ -110,7 +106,6 @@ export default function Toolbar({
   onStampColorChange,
   stampSize,
   onStampSizeChange,
-  onUndoStamp,
   onClearStamps,
   isHighlightMode,
   onToggleHighlightMode,
@@ -118,7 +113,6 @@ export default function Toolbar({
   onHighlightColorChange,
   highlightWidth,
   onHighlightWidthChange,
-  onUndoHighlight,
   onClearHighlights,
 }: ToolbarProps) {
   const zoomLevels = [0.5, 0.75, 1.0, 1.25, 1.5, 2.0];
@@ -240,6 +234,13 @@ export default function Toolbar({
         >
           <Highlighter size={18} />
         </button>
+        <button
+          onClick={onUndo}
+          className="p-1.5 rounded hover:bg-gray-100 text-gray-600"
+          title="실행 취소 (모든 도구)"
+        >
+          <Undo2 size={18} />
+        </button>
       </div>
 
       {/* 공통: 색상 선택 (그리기 또는 텍스트 모드일 때) */}
@@ -303,14 +304,6 @@ export default function Toolbar({
           </button>
 
           <button
-            onClick={onUndo}
-            className="p-1.5 rounded hover:bg-gray-100 text-gray-600"
-            title="실행 취소"
-          >
-            <Undo2 size={18} />
-          </button>
-
-          <button
             onClick={onClearDrawings}
             className="p-1.5 rounded hover:bg-gray-100 text-gray-600"
             title="이 페이지 그림 모두 지우기"
@@ -345,14 +338,6 @@ export default function Toolbar({
           </div>
 
           <div className="w-px h-6 bg-gray-200" />
-
-          <button
-            onClick={onUndoText}
-            className="p-1.5 rounded hover:bg-gray-100 text-gray-600"
-            title="텍스트 실행 취소"
-          >
-            <Undo2 size={18} />
-          </button>
 
           <button
             onClick={onClearTextAnnotations}
@@ -424,14 +409,6 @@ export default function Toolbar({
           <div className="w-px h-6 bg-gray-200" />
 
           <button
-            onClick={onUndoStamp}
-            className="p-1.5 rounded hover:bg-gray-100 text-gray-600"
-            title="도장 실행 취소"
-          >
-            <Undo2 size={18} />
-          </button>
-
-          <button
             onClick={onClearStamps}
             className="p-1.5 rounded hover:bg-gray-100 text-gray-600"
             title="이 페이지 도장 모두 지우기"
@@ -483,14 +460,6 @@ export default function Toolbar({
           </div>
 
           <div className="w-px h-6 bg-gray-200" />
-
-          <button
-            onClick={onUndoHighlight}
-            className="p-1.5 rounded hover:bg-gray-100 text-gray-600"
-            title="형광펜 실행 취소"
-          >
-            <Undo2 size={18} />
-          </button>
 
           <button
             onClick={onClearHighlights}
