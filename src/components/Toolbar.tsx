@@ -58,11 +58,6 @@ const STAMP_COLORS = [
   { value: '#7c3aed', label: '보라' },
 ];
 
-const STAMP_SIZES = [
-  { value: 60, label: 'S' },
-  { value: 80, label: 'M' },
-  { value: 100, label: 'L' },
-];
 
 const HIGHLIGHT_COLORS = [
   { value: '#FFFF00', label: '노랑' },
@@ -390,20 +385,19 @@ export default function Toolbar({
 
           {/* 도장 크기 */}
           <div className="flex items-center gap-1">
-            {STAMP_SIZES.map(({ value, label }) => (
-              <button
-                key={value}
-                onClick={() => onStampSizeChange(value)}
-                className={`px-2 py-0.5 rounded text-xs font-medium transition-colors ${
-                  stampSize === value
-                    ? 'bg-red-500 text-white'
-                    : 'hover:bg-gray-100 text-gray-600'
-                }`}
-                title={`크기 ${label}`}
-              >
-                {label}
-              </button>
-            ))}
+            <span className="text-xs text-gray-500">크기</span>
+            <input
+              type="number"
+              min={20}
+              max={300}
+              value={stampSize}
+              onChange={(e) => {
+                const val = parseInt(e.target.value, 10);
+                if (!isNaN(val) && val >= 20 && val <= 300) onStampSizeChange(val);
+              }}
+              className="w-16 px-2 py-0.5 rounded border border-gray-300 text-xs text-gray-700 focus:outline-none focus:border-red-400"
+            />
+            <span className="text-xs text-gray-500">px</span>
           </div>
 
           <div className="w-px h-6 bg-gray-200" />
