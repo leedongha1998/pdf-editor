@@ -61,12 +61,6 @@ const STAMP_COLORS = [
   { value: '#7c3aed', label: '보라' },
 ];
 
-const STROKE_SIZES = [
-  { value: 2, label: 'S' },
-  { value: 5, label: 'M' },
-  { value: 10, label: 'L' },
-];
-
 const STAMP_SIZES = [
   { value: 60, label: 'S' },
   { value: 80, label: 'M' },
@@ -81,11 +75,6 @@ const HIGHLIGHT_COLORS = [
   { value: '#FFA500', label: '주황' },
 ];
 
-const HIGHLIGHT_SIZES = [
-  { value: 12, label: 'S' },
-  { value: 20, label: 'M' },
-  { value: 32, label: 'L' },
-];
 
 
 export default function Toolbar({
@@ -285,20 +274,19 @@ export default function Toolbar({
 
           {/* 굵기 */}
           <div className="flex items-center gap-1">
-            {STROKE_SIZES.map(({ value, label }) => (
-              <button
-                key={value}
-                onClick={() => onStrokeWidthChange(value)}
-                className={`px-2 py-0.5 rounded text-xs font-medium transition-colors ${
-                  strokeWidth === value
-                    ? 'bg-blue-600 text-white'
-                    : 'hover:bg-gray-100 text-gray-600'
-                }`}
-                title={`굵기 ${label}`}
-              >
-                {label}
-              </button>
-            ))}
+            <span className="text-xs text-gray-500">굵기</span>
+            <input
+              type="number"
+              min={1}
+              max={50}
+              value={strokeWidth}
+              onChange={(e) => {
+                const val = parseInt(e.target.value, 10);
+                if (!isNaN(val) && val >= 1 && val <= 50) onStrokeWidthChange(val);
+              }}
+              className="w-16 px-2 py-0.5 rounded border border-gray-300 text-xs text-gray-700 focus:outline-none focus:border-blue-500"
+            />
+            <span className="text-xs text-gray-500">px</span>
           </div>
 
           <div className="w-px h-6 bg-gray-200" />
@@ -479,20 +467,19 @@ export default function Toolbar({
 
           {/* 형광펜 굵기 */}
           <div className="flex items-center gap-1">
-            {HIGHLIGHT_SIZES.map(({ value, label }) => (
-              <button
-                key={value}
-                onClick={() => onHighlightWidthChange(value)}
-                className={`px-2 py-0.5 rounded text-xs font-medium transition-colors ${
-                  highlightWidth === value
-                    ? 'bg-yellow-400 text-white'
-                    : 'hover:bg-gray-100 text-gray-600'
-                }`}
-                title={`굵기 ${label}`}
-              >
-                {label}
-              </button>
-            ))}
+            <span className="text-xs text-gray-500">굵기</span>
+            <input
+              type="number"
+              min={1}
+              max={100}
+              value={highlightWidth}
+              onChange={(e) => {
+                const val = parseInt(e.target.value, 10);
+                if (!isNaN(val) && val >= 1 && val <= 100) onHighlightWidthChange(val);
+              }}
+              className="w-16 px-2 py-0.5 rounded border border-gray-300 text-xs text-gray-700 focus:outline-none focus:border-yellow-500"
+            />
+            <span className="text-xs text-gray-500">px</span>
           </div>
 
           <div className="w-px h-6 bg-gray-200" />
