@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { RotateCcw, RotateCw, ZoomIn, ZoomOut, Download, ChevronLeft, ChevronRight, Pencil, Eraser, Undo2, Trash2, Type, Stamp, Highlighter } from 'lucide-react';
 
 interface ToolbarProps {
@@ -110,6 +111,11 @@ export default function Toolbar({
   onHighlightWidthChange,
   onClearHighlights,
 }: ToolbarProps) {
+  const [strokeWidthInput, setStrokeWidthInput] = useState(String(strokeWidth));
+  const [textFontSizeInput, setTextFontSizeInput] = useState(String(textFontSize));
+  const [stampSizeInput, setStampSizeInput] = useState(String(stampSize));
+  const [highlightWidthInput, setHighlightWidthInput] = useState(String(highlightWidth));
+
   const zoomLevels = [0.5, 0.75, 1.0, 1.25, 1.5, 2.0];
   const isAnnotationMode = isDrawingMode || isTextMode;
 
@@ -275,10 +281,15 @@ export default function Toolbar({
               type="number"
               min={1}
               max={50}
-              value={strokeWidth}
+              value={strokeWidthInput}
               onChange={(e) => {
+                setStrokeWidthInput(e.target.value);
                 const val = parseInt(e.target.value, 10);
                 if (!isNaN(val) && val >= 1 && val <= 50) onStrokeWidthChange(val);
+              }}
+              onBlur={() => {
+                const val = parseInt(strokeWidthInput, 10);
+                if (isNaN(val) || val < 1 || val > 50) setStrokeWidthInput(String(strokeWidth));
               }}
               className="w-16 px-2 py-0.5 rounded border border-gray-300 text-xs text-gray-700 focus:outline-none focus:border-blue-500"
             />
@@ -320,12 +331,15 @@ export default function Toolbar({
               type="number"
               min={6}
               max={200}
-              value={textFontSize}
+              value={textFontSizeInput}
               onChange={(e) => {
+                setTextFontSizeInput(e.target.value);
                 const val = parseInt(e.target.value, 10);
-                if (!isNaN(val) && val >= 6 && val <= 200) {
-                  onTextFontSizeChange(val);
-                }
+                if (!isNaN(val) && val >= 6 && val <= 200) onTextFontSizeChange(val);
+              }}
+              onBlur={() => {
+                const val = parseInt(textFontSizeInput, 10);
+                if (isNaN(val) || val < 6 || val > 200) setTextFontSizeInput(String(textFontSize));
               }}
               className="w-16 px-2 py-0.5 rounded border border-gray-300 text-xs text-gray-700 focus:outline-none focus:border-blue-500"
             />
@@ -390,10 +404,15 @@ export default function Toolbar({
               type="number"
               min={20}
               max={300}
-              value={stampSize}
+              value={stampSizeInput}
               onChange={(e) => {
+                setStampSizeInput(e.target.value);
                 const val = parseInt(e.target.value, 10);
                 if (!isNaN(val) && val >= 20 && val <= 300) onStampSizeChange(val);
+              }}
+              onBlur={() => {
+                const val = parseInt(stampSizeInput, 10);
+                if (isNaN(val) || val < 20 || val > 300) setStampSizeInput(String(stampSize));
               }}
               className="w-16 px-2 py-0.5 rounded border border-gray-300 text-xs text-gray-700 focus:outline-none focus:border-red-400"
             />
@@ -443,10 +462,15 @@ export default function Toolbar({
               type="number"
               min={1}
               max={100}
-              value={highlightWidth}
+              value={highlightWidthInput}
               onChange={(e) => {
+                setHighlightWidthInput(e.target.value);
                 const val = parseInt(e.target.value, 10);
                 if (!isNaN(val) && val >= 1 && val <= 100) onHighlightWidthChange(val);
+              }}
+              onBlur={() => {
+                const val = parseInt(highlightWidthInput, 10);
+                if (isNaN(val) || val < 1 || val > 100) setHighlightWidthInput(String(highlightWidth));
               }}
               className="w-16 px-2 py-0.5 rounded border border-gray-300 text-xs text-gray-700 focus:outline-none focus:border-yellow-500"
             />
