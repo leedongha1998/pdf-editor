@@ -36,6 +36,9 @@ export default function App() {
   const [highlightWidth, setHighlightWidth] = useState(20);
   const [highlightsByPage, setHighlightsByPage] = useState<Record<number, HighlightStroke[]>>({});
 
+  type HistoryEntry = { type: 'stroke' | 'text' | 'stamp' | 'highlight'; page: number };
+  const [undoHistory, setUndoHistory] = useState<HistoryEntry[]>([]);
+
   const currentStrokes = drawingsByPage[currentPage] ?? [];
   const currentTextAnnotations = textsByPage[currentPage] ?? [];
 
@@ -57,6 +60,7 @@ export default function App() {
     setTextsByPage({});
     setStampsByPage({});
     setHighlightsByPage({});
+    setUndoHistory([]);
     setIsDrawingMode(false);
     setIsTextMode(false);
     setIsStampMode(false);
@@ -100,18 +104,36 @@ export default function App() {
   };
 
   const handleStrokesChange = (newStrokes: Stroke[]) => {
+    const current = drawingsByPage[currentPage] ?? [];
+    if (newStrokes.length > current.length) {
+      setUndoHistory((h) => [...h, { type: 'stroke', page: currentPage }]);
+    }
     setDrawingsByPage((prev) => ({ ...prev, [currentPage]: newStrokes }));
   };
 
   const handleClearDrawings = () => {
     setDrawingsByPage((prev) => ({ ...prev, [currentPage]: [] }));
+    setUndoHistory((h) => h.filter((e) => !(e.type === 'stroke' && e.page === currentPage)));
   };
 
   const handleUndo = () => {
-    setDrawingsByPage((prev) => {
-      const strokes = prev[currentPage] ?? [];
-      return { ...prev, [currentPage]: strokes.slice(0, -1) };
-    });
+    if (undoHistory.length === 0) return;
+    const last = undoHistory[undoHistory.length - 1];
+    setUndoHistory((h) => h.slice(0, -1));
+    switch (last.type) {
+      case 'stroke':
+        setDrawingsByPage((prev) => ({ ...prev, [last.page]: (prev[last.page] ?? []).slice(0, -1) }));
+        break;
+      case 'text':
+        setTextsByPage((prev) => ({ ...prev, [last.page]: (prev[last.page] ?? []).slice(0, -1) }));
+        break;
+      case 'stamp':
+        setStampsByPage((prev) => ({ ...prev, [last.page]: (prev[last.page] ?? []).slice(0, -1) }));
+        break;
+      case 'highlight':
+        setHighlightsByPage((prev) => ({ ...prev, [last.page]: (prev[last.page] ?? []).slice(0, -1) }));
+        break;
+    }
   };
 
   const handleToggleDrawing = () => {
@@ -145,50 +167,44 @@ export default function App() {
   const currentHighlightStrokes = highlightsByPage[currentPage] ?? [];
 
   const handleHighlightStrokesChange = (strokes: HighlightStroke[]) => {
+    const current = highlightsByPage[currentPage] ?? [];
+    if (strokes.length > current.length) {
+      setUndoHistory((h) => [...h, { type: 'highlight', page: currentPage }]);
+    }
     setHighlightsByPage((prev) => ({ ...prev, [currentPage]: strokes }));
-  };
-
-  const handleUndoHighlight = () => {
-    setHighlightsByPage((prev) => {
-      const strokes = prev[currentPage] ?? [];
-      return { ...prev, [currentPage]: strokes.slice(0, -1) };
-    });
   };
 
   const handleClearHighlights = () => {
     setHighlightsByPage((prev) => ({ ...prev, [currentPage]: [] }));
+    setUndoHistory((h) => h.filter((e) => !(e.type === 'highlight' && e.page === currentPage)));
   };
 
   const currentStampAnnotations = stampsByPage[currentPage] ?? [];
 
   const handleStampAnnotationsChange = (annotations: StampAnnotation[]) => {
+    const current = stampsByPage[currentPage] ?? [];
+    if (annotations.length > current.length) {
+      setUndoHistory((h) => [...h, { type: 'stamp', page: currentPage }]);
+    }
     setStampsByPage((prev) => ({ ...prev, [currentPage]: annotations }));
-  };
-
-  const handleUndoStamp = () => {
-    setStampsByPage((prev) => {
-      const stamps = prev[currentPage] ?? [];
-      return { ...prev, [currentPage]: stamps.slice(0, -1) };
-    });
   };
 
   const handleClearStamps = () => {
     setStampsByPage((prev) => ({ ...prev, [currentPage]: [] }));
+    setUndoHistory((h) => h.filter((e) => !(e.type === 'stamp' && e.page === currentPage)));
   };
 
   const handleTextAnnotationsChange = (annotations: TextAnnotation[]) => {
+    const current = textsByPage[currentPage] ?? [];
+    if (annotations.length > current.length) {
+      setUndoHistory((h) => [...h, { type: 'text', page: currentPage }]);
+    }
     setTextsByPage((prev) => ({ ...prev, [currentPage]: annotations }));
-  };
-
-  const handleUndoText = () => {
-    setTextsByPage((prev) => {
-      const anns = prev[currentPage] ?? [];
-      return { ...prev, [currentPage]: anns.slice(0, -1) };
-    });
   };
 
   const handleClearTextAnnotations = () => {
     setTextsByPage((prev) => ({ ...prev, [currentPage]: [] }));
+    setUndoHistory((h) => h.filter((e) => !(e.type === 'text' && e.page === currentPage)));
   };
 
   return (
@@ -245,7 +261,6 @@ export default function App() {
                   onToggleTextMode={handleToggleTextMode}
                   textFontSize={textFontSize}
                   onTextFontSizeChange={setTextFontSize}
-                  onUndoText={handleUndoText}
                   onClearTextAnnotations={handleClearTextAnnotations}
                   isStampMode={isStampMode}
                   onToggleStampMode={handleToggleStampMode}
@@ -255,7 +270,6 @@ export default function App() {
                   onStampColorChange={setStampColor}
                   stampSize={stampSize}
                   onStampSizeChange={setStampSize}
-                  onUndoStamp={handleUndoStamp}
                   onClearStamps={handleClearStamps}
                   isHighlightMode={isHighlightMode}
                   onToggleHighlightMode={handleToggleHighlightMode}
@@ -263,7 +277,6 @@ export default function App() {
                   onHighlightColorChange={setHighlightColor}
                   highlightWidth={highlightWidth}
                   onHighlightWidthChange={setHighlightWidth}
-                  onUndoHighlight={handleUndoHighlight}
                   onClearHighlights={handleClearHighlights}
                 />
 
